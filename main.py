@@ -308,7 +308,11 @@ def main(page: ft.Page):
         page_chat.update()
 
     page.title = "Entre Nous - Chat App"
-
+    if page.platform == ft.PagePlatform.WINDOWS:
+        page.window.center()
+        page.window.icon = "assets/chat-icon.png"
+        page.window.width = 400
+        page.window.height = 700
     # VARIABLES - CONTROLS
     global_user_name = "User"  # global user name
     body_chat_view = ft.Container()  # global body content for chat_view

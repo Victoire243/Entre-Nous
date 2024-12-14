@@ -29,6 +29,6 @@ company = "Entre Nous"
 copyright = "Copyright (C) 2024 by Victoire Kitenge & Pascal Lutamba"
 
 
-[tool.flet.app]
-path = "src"
-# # module = "main"
+# [tool.flet.app]
+# path = "src"
+# # # module = "main"
