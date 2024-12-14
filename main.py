@@ -1,8 +1,12 @@
 # from flet import *
 import flet as ft
-from PySock import client
+
+# from PySock import client
 from chat_view import MessageView
 import unicodedata
+import pickle
+import socket
+import threading
 import os
 
 
@@ -13,6 +17,47 @@ def remove_accents(phrase: str) -> str:
 
 
 def main(page: ft.Page):
+
+    def receive_messages(sock):
+        """Function to receive messages from the server."""
+        buffer = b""
+        while True:
+            try:
+                message = sock.recv(2048)
+                # print(f"Received message: {message}")
+                if not message:
+                    # print("Disconnected from the server.")
+                    break
+                buffer += message
+                try:
+                    data = pickle.loads(buffer)
+                    buffer = b""
+                    # print(f"Received: {data}")
+                except pickle.UnpicklingError:
+                    continue
+                else:
+                    # print(f"Received: {data}")
+                    response_server(data)
+                    continue
+            except Exception as e:
+                # print(f"Error receiving message: {e}")
+                break
+        # print("Exiting receive_messages thread.")
+
+    def send_message(sock, message, user_matricule):
+        """Function to send messages to the server."""
+        # print(f"Sending message: {message}")
+        # print(f"User matricule: {user_matricule}")
+        # print(f"Socket: {sock}")
+        try:
+            data = {"sender_name": user_matricule, "data": message}
+            serialized_data = pickle.dumps(data)
+            sock.sendall(serialized_data)
+        except Exception as e:
+            # print(f"Error sending message: {e}")
+            pass
+        # else:
+        #     #print("Message sent.")
 
     def exit_event(e):
         if e.data == "detach" and page.platform == ft.PagePlatform.ANDROID:
@@ -26,11 +71,16 @@ def main(page: ft.Page):
         page_chat.update()
 
     def change_chat_room(e):
-        global c
+        global client_sock
         chat_room_title.value = e.control.text
-        c.SEND(
-            channel="entre_nous",
-            data={"type_message": "get_messages", "room_name": e.control.data},
+        # c.SEND(
+        #     channel="entre_nous",
+        #     data={"type_message": "get_messages", "room_name": e.control.data},
+        # )
+        send_message(
+            client_sock,
+            {"type_message": "get_messages", "room_name": e.control.data},
+            global_user_matricule,
         )
         restore(None)
         page.update()
@@ -44,40 +94,86 @@ def main(page: ft.Page):
             page.run_thread(connexion_server, matricule)
 
     def connexion_server(matricule):
-        global c
+        # global global_user_matricule
+        global client_sock
         progress_bar_connexion_server.visible = True
         progress_bar_connexion_server.update()
+        # try:
+        #     c = client(client_name=matricule, debug=True)
+        #     c.CLIENT(address=txt_field_address_server.value.strip(), port=1200)
+        #     c.CREATE_CHANNEL(channels="entre_nous"),
+        # except Exception as error:
+        #     #print(f"Erreur connexion au serveur : {error}")
+        #     txt_field_matricule.error_text = "Connexion impossible. Veuillez ressayer !"
+        #     txt_field_matricule.update()
+        # else:
+        #     txt_field_matricule.error_text = ""
+        #     c.SEND(channel="entre_nous", data={"type_message": "login"})
+        #     txt_field_matricule.update()
+        #     try:
+        #         while True:
+        #             c.LISTEN(channel="entre_nous", function=response_server)
+        #     except Exception as error:
+        #         #print(f"Erreur écoute du serveur : {error}")
+        # finally:
+        #     progress_bar_connexion_server.visible = False
+        #     progress_bar_connexion_server.update()
+
         try:
-            c = client(client_name=matricule, debug=True)
-            c.CLIENT(address=txt_field_address_server.value.strip(), port=1200)
-            c.CREATE_CHANNEL(channels="entre_nous"),
-        except Exception as error:
-            print(f"Erreur connexion au serveur : {error}")
+            # Connect to the server
+            server_address = (txt_field_address_server.value.strip(), 20002)
+            client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            client_sock.connect(server_address)
+            # print(f"Connected to server at {server_address}")
+
+            # Start a thread to receive messages from the server
+            threading.Thread(
+                target=receive_messages, args=(client_sock,), daemon=True
+            ).start()
+
+            # while True:
+            #     # Get user input and send it to the server
+            #     message = input("Enter message to send (or 'exit' to quit): ")
+            #     serialized_data = pickle.dumps(message)
+            #     if message.lower() == "exit":
+            #         #print("Exiting...")
+            #         break
+            #     client_sock.sendall(serialized_data)
+
+        except Exception as e:
+            # print(f"Error: {e}")
             txt_field_matricule.error_text = "Connexion impossible. Veuillez ressayer !"
             txt_field_matricule.update()
         else:
             txt_field_matricule.error_text = ""
-            c.SEND(channel="entre_nous", data={"type_message": "login"})
+            # c.SEND(channel="entre_nous", data={"type_message": "login"})
+            send_message(
+                client_sock,
+                {"type_message": "login", "user_matricule": matricule},
+                matricule,
+            )
             txt_field_matricule.update()
-            try:
-                while True:
-                    c.LISTEN(channel="entre_nous", function=response_server)
-            except Exception as error:
-                print(f"Erreur écoute du serveur : {error}")
-        finally:
-            progress_bar_connexion_server.visible = False
-            progress_bar_connexion_server.update()
+        # finally:
+        #     client_sock.close()
+        #     #print("Connection closed.")
 
     def response_server(data):
-        global global_user_name, c, chat_view, body_chat_view
+        global global_user_name, chat_view, body_chat_view, global_user_matricule, client_sock
         data = data["data"]
         keys_data = data.keys()
         if "login" in keys_data:
+            # print(data["login"])
             if data["login"] != "null":
                 global_user_name = data["login"]
-                c.SEND(
-                    channel="entre_nous",
-                    data={"type_message": "get_messages", "room_name": "entre nous"},
+                # c.SEND(
+                #     channel="entre_nous",
+                #     data={"type_message": "get_messages", "room_name": "entre nous"},
+                # )
+                # print("preparing to send message to server. . .")
+                send_message(
+                    client_sock,
+                    {"type_message": "get_messages", "room_name": "entre nous"},
+                    global_user_matricule,
                 )
                 page_profile.content.controls[1].controls[
                     1
@@ -87,7 +183,7 @@ def main(page: ft.Page):
                 chat_view = MessageView(
                     user_name=global_user_name, on_send_message=on_send_new_message
                 )
-                # print(data["messages"])
+                # #print(data["messages"])
                 for msg in data["messages"]:
                     chat_view.add_message(
                         {
@@ -147,17 +243,28 @@ def main(page: ft.Page):
                 page.update()
 
     def on_send_new_message(message: dict):
-        global c
-        # print(message)
-        c.SEND(
-            channel="entre_nous",
-            data={
+        global client_sock, global_user_matricule
+        # #print(message)
+        # c.SEND(
+        #     channel="entre_nous",
+        #     data={
+        #         "user_name": message["user_name"].lower(),
+        #         "type_message": "chat_message",
+        #         "room_name": remove_accents(chat_room_title.value),
+        #         "message": message["message"],
+        #         "user_matricule": global_user_matricule,
+        #     },
+        # )
+        send_message(
+            client_sock,
+            {
                 "user_name": message["user_name"].lower(),
                 "type_message": "chat_message",
                 "room_name": remove_accents(chat_room_title.value),
                 "message": message["message"],
                 "user_matricule": global_user_matricule,
             },
+            global_user_matricule,
         )
 
     def btn_chat_room(text: str, data: str):
@@ -203,6 +310,7 @@ def main(page: ft.Page):
     # VARIABLES - CONTROLS
     global_user_name = "User"  # global user name
     body_chat_view = ft.Container()  # global body content for chat_view
+    client_sock = None  # global client socket
     c = None  # global client
     chat_view = None  # global chat_view page
     chat_room_title = ft.Text(
@@ -321,10 +429,10 @@ def main(page: ft.Page):
                                             ),
                                         ]
                                     ),
-                                ),
-                                ft.Badge(
-                                    small_size=20,
-                                    bgcolor="green",
+                                    badge=ft.Badge(
+                                        small_size=20,
+                                        bgcolor="green",
+                                    ),
                                 ),
                             ]
                         ),
