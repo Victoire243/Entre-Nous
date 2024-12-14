@@ -181,10 +181,10 @@ def main(page: ft.Page):
                     1
                 ].value = global_user_name.capitalize()
         elif "messages" in keys_data:
+            chat_view = MessageView(
+                user_name=global_user_name, on_send_message=on_send_new_message
+            )
             if data["messages"] != "null":
-                chat_view = MessageView(
-                    user_name=global_user_name, on_send_message=on_send_new_message
-                )
                 # #print(data["messages"])
                 for msg in data["messages"]:
                     chat_view.add_message(
@@ -204,24 +204,17 @@ def main(page: ft.Page):
                 page_chat.visible = True
                 page_profile.visible = True
                 body_chat_view = chat_view
-                page_chat.content.controls.pop()
-                progress_bar_connexion_server.visible = False
-                progress_bar_connexion_server.update()
-                page_chat.content.controls.append(body_chat_view)
-                home.update()
-                page.update()
 
             else:
-                chat_view = MessageView(
-                    user_name=global_user_name, on_send_message=on_send_new_message
-                )
                 body_chat_view = chat_view
-                page_chat.content.controls.pop()
-                progress_bar_connexion_server.visible = False
-                progress_bar_connexion_server.update()
-                page_chat.content.controls.append(body_chat_view)
-                home.update()
-                page.update()
+
+            page_chat.content.controls.pop()
+            progress_bar_connexion_server.visible = False
+            progress_bar_connexion_server.update()
+            page_chat.content.controls.append(body_chat_view)
+            page_chat.update()
+            home.update()
+            page.update()
 
         elif "text" in keys_data:
             if chat_view:
