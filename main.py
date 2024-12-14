@@ -429,10 +429,10 @@ def main(page: ft.Page):
                                             ),
                                         ]
                                     ),
-                                    badge=ft.Badge(
-                                        small_size=20,
-                                        bgcolor="green",
-                                    ),
+                                ),
+                                ft.Badge(
+                                    small_size=20,
+                                    bgcolor="green",
                                 ),
                             ]
                         ),
