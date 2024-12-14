@@ -153,7 +153,9 @@ def main(page: ft.Page):
                 matricule,
             )
             txt_field_matricule.update()
-        # finally:
+        finally:
+            progress_bar_connexion_server.visible = False
+            progress_bar_connexion_server.update()
         #     client_sock.close()
         #     #print("Connection closed.")
 
@@ -429,10 +431,7 @@ def main(page: ft.Page):
                                             ),
                                         ]
                                     ),
-                                ),
-                                ft.Badge(
-                                    small_size=20,
-                                    bgcolor="green",
+                                    badge=ft.Badge(small_size=20, bgcolor="green"),
                                 ),
                             ]
                         ),
