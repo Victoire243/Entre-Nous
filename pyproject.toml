@@ -28,6 +28,8 @@ company = "Entre Nous"
 # copyright text to display in about app dialogs
 copyright = "Copyright (C) 2024 by Victoire Kitenge & Pascal Lutamba"
 
+[tool.flet.flutter.pubspec.dependency_overrides]
+file_picker = "8.1.4"
 
 # [tool.flet.app]
 # path = "src"
