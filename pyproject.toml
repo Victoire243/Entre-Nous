@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Application de messagerie simple et sécurisée pour la communication entre utilisateurs d'un même réseau local"
 readme = "README.md"
 requires-python = ">=3.8"
-dependencies = ["flet==0.25.0", "pycryptodome==3.21.0"]
+dependencies = ["flet==0.25.0", "cffi", "pycryptodome==3.21.0"]
 authors = [
     { name = "Yuma Kitenge Victoire", email = "yumakitenge2@gmail.com" },
     { name = "Lutamba Lula Pascal" },
