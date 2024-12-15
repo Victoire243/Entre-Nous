@@ -1,1 +1,2 @@
 flet==0.25.0
+pycryptodome==3.21.0

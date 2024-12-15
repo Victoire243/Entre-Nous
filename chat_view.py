@@ -163,7 +163,6 @@ class ChatMessage(ft.Row):
         """
         colors_lookup = [
             ft.colors.AMBER,
-            ft.colors.BLUE,
             ft.colors.BROWN,
             ft.colors.CYAN,
             ft.colors.GREEN,
@@ -175,6 +174,15 @@ class ChatMessage(ft.Row):
             ft.colors.RED,
             ft.colors.TEAL,
             ft.colors.YELLOW,
+            ft.colors.BLUE_GREY_700,
+            ft.colors.CYAN_ACCENT,
+            ft.colors.DEEP_PURPLE,
+            ft.colors.GREEN_500,
+            ft.colors.LIME_600,
+            ft.colors.LIGHT_GREEN,
+            ft.colors.LIGHT_BLUE,
+            ft.colors.ORANGE_ACCENT,
+            ft.colors.PINK_ACCENT,
         ]
         return colors_lookup[hash(user_name) % len(colors_lookup)]
 
