@@ -9,6 +9,10 @@ import socket
 import threading
 import os
 
+# import logging
+
+# logging.basicConfig(level=logging.DEBUG)
+
 
 def remove_accents(phrase: str) -> str:
     phrase = phrase.lower().strip()
@@ -182,7 +186,9 @@ def main(page: ft.Page):
                 ].value = global_user_name.capitalize()
         elif "messages" in keys_data:
             chat_view = MessageView(
-                user_name=global_user_name, on_send_message=on_send_new_message
+                user_name=global_user_name,
+                on_send_message=on_send_new_message,
+                page=page,
             )
             if data["messages"] != "null":
                 # #print(data["messages"])
@@ -209,8 +215,11 @@ def main(page: ft.Page):
                 body_chat_view = chat_view
 
             page_chat.content.controls.pop()
+            page_chat.update()
+            page.update()
             progress_bar_connexion_server.visible = False
             progress_bar_connexion_server.update()
+            page_chat.content.update()
             page_chat.content.controls.append(body_chat_view)
             page_chat.update()
             home.update()
@@ -310,7 +319,6 @@ def main(page: ft.Page):
     global_user_name = "User"  # global user name
     body_chat_view = ft.Container()  # global body content for chat_view
     client_sock = None  # global client socket
-    c = None  # global client
     chat_view = None  # global chat_view page
     chat_room_title = ft.Text(
         value="Entre Nous", text_align="center", color="white", size=16, weight="bold"

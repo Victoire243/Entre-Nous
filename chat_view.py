@@ -187,6 +187,7 @@ class MessageView(ft.SafeArea):
 
     def __init__(
         self,
+        page: ft.Page,
         user_name: str,
         content=ft.Column(),
         message_type: str = "chat_message",
@@ -208,6 +209,7 @@ class MessageView(ft.SafeArea):
         self.message_sent = dict()
         self.expand = True
         self.on_send_message = on_send_message
+        self.page = page
 
         # Liste des messages de chat
         self.chat = ft.ListView(
@@ -273,6 +275,7 @@ class MessageView(ft.SafeArea):
             "message": self.new_message.value,
             "user_name": self.user_name,
         }
+        self.page.update()
 
     def send_message_click(self, e):
         """
@@ -299,4 +302,5 @@ class MessageView(ft.SafeArea):
             }
             self.on_send_message(self.message_sent)
             self.new_message.value = ""
+            self.page.update()
             self.update()
